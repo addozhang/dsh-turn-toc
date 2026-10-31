@@ -1,6 +1,6 @@
 {
   "name": "@addozhang/dsh-turn-toc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Turn section outline for the DeepSeek Harness Web GUI: frameless TurnNavigator-style tick marks beside the message column that expand on hover into an interactive multi-level heading outline with 1-click jump.",
   "author": "addozhang",
   "license": "MIT",
