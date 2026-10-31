@@ -1,0 +1,9 @@
+# The @addozhang/dsh-turn-toc bundle patch: mounts the turn-outline plugin into
+# the profile's Host plugin tree. The Host half is a no-op (this plugin is
+# presentation-only); the browser half is declared through the package's
+# `dsh.client` manifest, so the modules node scans it into the browser roster
+# automatically and no client row is needed here.
+
+- insert:
+    - id: turn-toc
+      name: '@addozhang/dsh-turn-toc'
