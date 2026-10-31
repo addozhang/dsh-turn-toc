@@ -2,11 +2,18 @@
 
 [English](./README.md) | 简体中文
 
+[![npm](https://img.shields.io/npm/v/@addozhang/dsh-turn-toc)](https://www.npmjs.com/package/@addozhang/dsh-turn-toc)
+[![CI](https://img.shields.io/github/actions/workflow/status/addozhang/dsh-turn-toc/ci.yml?branch=main&label=CI)](https://github.com/addozhang/dsh-turn-toc/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@addozhang/dsh-turn-toc)](./LICENSE)
+[![node](https://img.shields.io/node/v/@addozhang/dsh-turn-toc)](./package.json)
+
 专为 **DeepSeek Harness** Web 与 Desktop GUI 打造的轮次内章节目录（Turn TOC）插件。
 
 它位于居中正文列的右侧留白处，采用与 DSH 原生 `TurnNavigator` 完全一致的无框极简刻度尺设计语言：平时仅展示按标题层级长短递减的水平短横线，鼠标移入（Hover）时向右展开为可交互的多级章节大纲卡片。
 
-![轮次章节目录演示](https://raw.githubusercontent.com/addozhang/dsh-turn-toc/main/docs/demo.gif)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/addozhang/dsh-turn-toc/main/docs/demo.gif" alt="轮次章节目录演示：无框刻度悬停展开为可交互大纲，一键跳转" width="720">
+</p>
 
 ## 核心特性
 

@@ -2,11 +2,18 @@
 
 English | [简体中文](./README.zh-CN.md)
 
+[![npm](https://img.shields.io/npm/v/@addozhang/dsh-turn-toc)](https://www.npmjs.com/package/@addozhang/dsh-turn-toc)
+[![CI](https://img.shields.io/github/actions/workflow/status/addozhang/dsh-turn-toc/ci.yml?branch=main&label=CI)](https://github.com/addozhang/dsh-turn-toc/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@addozhang/dsh-turn-toc)](./LICENSE)
+[![node](https://img.shields.io/node/v/@addozhang/dsh-turn-toc)](./package.json)
+
 Turn section outline (TOC) plugin for the **DeepSeek Harness** Web & Desktop GUI.
 
 It sits in the right gutter just outside the centered message column—sharing the frameless tick-mark aesthetic of DSH's built-in `TurnNavigator`—and expands on hover into an interactive multi-level heading outline for the turn you are currently reading.
 
-![Turn outline demo](https://raw.githubusercontent.com/addozhang/dsh-turn-toc/main/docs/demo.gif)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/addozhang/dsh-turn-toc/main/docs/demo.gif" alt="Turn outline demo: frameless tick marks expand on hover into an interactive heading outline with 1-click jump" width="720">
+</p>
 
 ## Features
 
