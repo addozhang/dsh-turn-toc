@@ -21,7 +21,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { AssistantChatData } from '@deepseek-ai/dsh-client-ui-chat/client'
 import type { NS } from './locale.ts'
 import { activeHeadingIndex, resolveReadingLineY, revealEntry, revealTurnStart } from './heading-dom.ts'
-import { turnOutline, type TocEntry } from './outline.ts'
+import { displayOutline, turnOutline, type TocEntry } from './outline.ts'
 
 /** The seat's runtime share (session scope: definite `useChat`) plus the namespace translator. */
 export type TurnTocTriggerProps = PropsRuntime<'conversation.input.right'> & PropsLocale<typeof NS>
@@ -194,7 +194,7 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
   })
 
   const entries = useMemo(
-    () => model === null || model.turn === null ? EMPTY_ENTRIES : turnOutline(model.steps),
+    () => model === null || model.turn === null ? EMPTY_ENTRIES : displayOutline(turnOutline(model.steps)),
     [model],
   )
   const turn = model?.turn ?? null

@@ -150,3 +150,23 @@ export function turnOutline(steps: OutlineSource): readonly TocEntry[] {
   }
   return entries.length === 0 ? EMPTY : entries
 }
+
+/** Deepest heading level the outline displays. */
+export const MAX_DISPLAY_DEPTH = 3
+
+/**
+ * Keep the displayable slice of one Turn's outline: headings up to
+ * {@link MAX_DISPLAY_DEPTH}. When a Turn's headings are all deeper than the
+ * cap, its shallowest present level is shown instead, so a Turn with headings
+ * never loses its outline. Parsing, occurrence ordinals, and DOM matching
+ * are unaffected — this is a presentation filter over the full entry list.
+ * @param entries - the Turn's full outline.
+ * @returns the display entries, or a shared empty array when none.
+ */
+export function displayOutline(entries: readonly TocEntry[]): readonly TocEntry[] {
+  if (entries.length === 0) return EMPTY
+  const capped = entries.filter(entry => entry.depth <= MAX_DISPLAY_DEPTH)
+  if (capped.length > 0) return capped
+  const shallowest = entries.reduce((min, entry) => Math.min(min, entry.depth), 6)
+  return entries.filter(entry => entry.depth === shallowest)
+}

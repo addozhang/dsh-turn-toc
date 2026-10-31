@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { turnOutline } from '../src/client/outline.ts'
+import { displayOutline, turnOutline } from '../src/client/outline.ts'
 
 function step(text: string): { blocks: { kind: string; text: string }[] } {
   return { blocks: [{ kind: 'text', text }] }
@@ -77,4 +77,25 @@ test('returns a shared empty array when nothing matches', () => {
   const first = turnOutline([step('plain text only')])
   const second = turnOutline([])
   assert.equal(first, second)
+})
+
+test('displayOutline keeps headings up to level 3', () => {
+  const entries = turnOutline([step('# A\n## B\n### C\n#### D\n##### E\n###### F')])
+  const shown = displayOutline(entries)
+  assert.deepEqual(shown.map(entry => entry.text), ['A', 'B', 'C'])
+})
+
+test('displayOutline falls back to the shallowest level when all headings are deeper than the cap', () => {
+  const entries = turnOutline([step('#### D1\n##### E1\n#### D2')])
+  const shown = displayOutline(entries)
+  assert.deepEqual(shown.map(entry => `${entry.depth}:${entry.text}`), ['4:D1', '4:D2'])
+})
+
+test('displayOutline passes duplicates and empty lists through consistently', () => {
+  assert.deepEqual(displayOutline([]), [])
+  const entries = turnOutline([step('## Same\n### x\n## Same')])
+  const shown = displayOutline(entries)
+  assert.deepEqual(shown.map(entry => [entry.depth, entry.text, entry.occurrence]), [
+    [2, 'Same', 0], [3, 'x', 0], [2, 'Same', 1],
+  ])
 })
