@@ -51,6 +51,67 @@ export function visibleTurnRows(root: ParentNode, turn: number): HTMLElement[] {
   return rows
 }
 
+/** One rendered heading of a Turn, in document order. */
+interface CollectedHeading {
+  readonly depth: number
+  readonly text: string
+  readonly element: HTMLElement
+}
+
+/**
+ * Collect every visible heading of one Turn in a single pass. Reasoning rows
+ * (`[data-variant="think"]`) and hidden rows never contribute.
+ * @param root - document (or a subtree) to query.
+ * @param turn - Turn number whose rows hold the headings.
+ * @returns the visible headings in document order.
+ */
+function collectTurnHeadings(root: ParentNode, turn: number): CollectedHeading[] {
+  const headings: CollectedHeading[] = []
+  for (const row of visibleTurnRows(root, turn)) {
+    for (const heading of row.querySelectorAll<HTMLElement>('h1,h2,h3,h4,h5,h6')) {
+      if (heading.closest('[hidden]') !== null) continue
+      if (heading.closest('[data-variant="think"]') !== null) continue
+      headings.push({
+        depth: Number(heading.tagName.slice(1)),
+        text: foldWhitespace(heading.textContent ?? ''),
+        element: heading,
+      })
+    }
+  }
+  return headings
+}
+
+/**
+ * Resolve each outline entry onto its rendered heading element in one linear
+ * walk: entries and DOM headings share source order, so a forward cursor
+ * gives each entry the first still-unmatched heading of the same (depth,
+ * text) at or after the cursor — duplicate entries consume duplicate
+ * headings in sequence. An entry whose heading is folded away resolves to
+ * null.
+ * @param headings - the Turn's visible headings in document order.
+ * @param entries - the Turn's outline entries in output order.
+ * @returns the matched element per entry (null when not rendered).
+ */
+function matchHeadings(
+  headings: readonly CollectedHeading[],
+  entries: readonly TocEntry[],
+): (HTMLElement | null)[] {
+  const matched: (HTMLElement | null)[] = []
+  let cursor = 0
+  for (const entry of entries) {
+    let found: HTMLElement | null = null
+    for (let index = cursor; index < headings.length; index++) {
+      const heading = headings[index]!
+      if (heading.depth !== entry.depth || heading.text !== entry.text) continue
+      found = heading.element
+      cursor = index + 1
+      break
+    }
+    matched.push(found)
+  }
+  return matched
+}
+
 /**
  * Find the rendered heading DOM node for one outline entry. Matched by tag
  * level plus folded text, taking the entry's occurrence ordinal among
@@ -61,15 +122,12 @@ export function visibleTurnRows(root: ParentNode, turn: number): HTMLElement[] {
  * @returns the heading element, or null when the heading is not currently rendered.
  */
 export function findHeadingElement(root: ParentNode, turn: number, entry: TocEntry): HTMLElement | null {
+  const headings = collectTurnHeadings(root, turn)
   let seen = 0
-  for (const row of visibleTurnRows(root, turn)) {
-    for (const heading of row.querySelectorAll<HTMLElement>(`h${entry.depth}`)) {
-      if (heading.closest('[hidden]') !== null) continue
-      if (heading.closest('[data-variant="think"]') !== null) continue
-      if (foldWhitespace(heading.textContent ?? '') !== entry.text) continue
-      if (seen === entry.occurrence) return heading
-      seen += 1
-    }
+  for (const heading of headings) {
+    if (heading.depth !== entry.depth || heading.text !== entry.text) continue
+    if (seen === entry.occurrence) return heading.element
+    seen += 1
   }
   return null
 }
@@ -91,9 +149,10 @@ export function activeHeadingIndex(
 ): number {
   if (entries.length === 0) return -1
   const tolerancePx = 6
+  const matched = matchHeadings(collectTurnHeadings(root, turn), entries)
   let active = 0
-  for (let index = 0; index < entries.length; index++) {
-    const element = findHeadingElement(root, turn, entries[index]!)
+  for (let index = 0; index < matched.length; index++) {
+    const element = matched[index]
     if (element === null) continue
     const rect = element.getBoundingClientRect()
     if (rect.top <= readingLineY + tolerancePx) active = index

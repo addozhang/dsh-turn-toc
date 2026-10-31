@@ -102,7 +102,8 @@ function visibleRows(
 /**
  * The Turn whose rows sit at the transcript's reading line: the last Turn
  * whose first row starts at or above the line, else the first on-screen Turn.
- * Hidden rows never count.
+ * Hidden rows never count. Rows come in document order, so the scan stops at
+ * the first row entirely below the viewport.
  * @returns the resolved Turn number, or null when no transcript is on screen.
  */
 function turnAtReadingLine(): number | null {
@@ -112,7 +113,8 @@ function turnAtReadingLine(): number | null {
   for (const row of document.querySelectorAll<HTMLElement>('[data-chat-turn]')) {
     if (row.closest('[hidden]') !== null) continue
     const rect = row.getBoundingClientRect()
-    if (rect.bottom <= 0 || rect.top >= window.innerHeight) continue
+    if (rect.bottom <= 0) continue
+    if (rect.top >= window.innerHeight) break
     const turn = Number(row.dataset.chatTurn)
     if (!Number.isInteger(turn) || turn < 0) continue
     fallback ??= turn
@@ -170,6 +172,10 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
   const [geometry, setGeometry] = useState<RightMarginGeometry | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // While a programmatic smooth jump animates, the scroll spy must not fight
+  // the destination: holds are cleared by `scrollend` (when supported) or by
+  // this expiry after the longest expected animation.
+  const jumpHoldRef = useRef(0)
 
   const model = useChat(snapshot => {
     const order = snapshot.order
@@ -206,6 +212,7 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
     let frame: number | null = null
     const compute = (): void => {
       frame = null
+      if (typeof performance !== 'undefined' && performance.now() < jumpHoldRef.current) return
       const nextTurn = turnAtReadingLine()
       if (nextTurn !== null) {
         setActiveTurn(previous => (previous === nextTurn ? previous : nextTurn))
@@ -214,12 +221,7 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
       setGeometry(previous => (sameGeometry(previous, nextGeo) ? previous : nextGeo))
       const effectiveTurn = nextTurn ?? latestRef.current.turn
       if (effectiveTurn !== null && latestRef.current.entries.length > 0) {
-        const nextIdx = activeHeadingIndex(
-          document,
-          effectiveTurn,
-          latestRef.current.entries,
-          resolveReadingLineY(document),
-        )
+        const nextIdx = activeHeadingIndex(document, effectiveTurn, latestRef.current.entries)
         setActiveIdx(previous => (previous === nextIdx ? previous : nextIdx))
       }
     }
@@ -228,8 +230,19 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
       if (typeof requestAnimationFrame === 'function') frame = requestAnimationFrame(compute)
       else compute()
     }
+    const onScrollEnd = (): void => { jumpHoldRef.current = 0 }
+    // Only scrolls inside the conversation move the reading position; sidebar
+    // and panel scrollers are filtered out before scheduling work.
+    const onScroll = (event: Event): void => {
+      const target = event.target
+      if (target instanceof Element && target.closest('[data-conversation-content]') === null) return
+      schedule()
+    }
     scheduleRef.current = schedule
-    document.addEventListener('scroll', schedule, { capture: true, passive: true })
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    if ('onscrollend' in document) {
+      document.addEventListener('scrollend', onScrollEnd, { capture: true })
+    }
     window.addEventListener('resize', schedule)
     const region = document.querySelector<HTMLElement>('[data-conversation-content]')
     const observer = typeof ResizeObserver === 'function' && region !== null
@@ -240,7 +253,8 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
     return () => {
       scheduleRef.current = null
       if (frame !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
-      document.removeEventListener('scroll', schedule, { capture: true })
+      document.removeEventListener('scroll', onScroll, { capture: true })
+      document.removeEventListener('scrollend', onScrollEnd, { capture: true })
       window.removeEventListener('resize', schedule)
       observer?.disconnect()
     }
@@ -297,7 +311,13 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
     })
   }
 
+  /** Suppress the scroll spy for one programmatic smooth jump. */
+  const startJump = (): void => {
+    jumpHoldRef.current = (typeof performance !== 'undefined' ? performance.now() : Date.now()) + 900
+  }
+
   const jumpToTurn = (targetTurn: number): void => {
+    startJump()
     setActiveTurn(targetTurn)
     revealTurnStart(document, targetTurn)
   }
@@ -331,7 +351,10 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
                   className="dsh-toc-turnBtn"
                   title={t('toc.turnTop', { turn })}
                   aria-label={t('toc.turnTop', { turn })}
-                  onClick={() => { revealTurnStart(document, turn) }}
+                  onClick={() => {
+                    startJump()
+                    revealTurnStart(document, turn)
+                  }}
                 >
                   <span className="dsh-toc-turnLabel">{t('toc.turn', { turn })}</span>
                   <span className="dsh-toc-count">{t('toc.count', { count: entries.length })}</span>
@@ -403,6 +426,7 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
                       aria-label={t('toc.jump', { title: entry.text })}
                       aria-current={active ? 'location' : undefined}
                       onClick={() => {
+                        startJump()
                         setActiveIdx(index)
                         revealEntry(document, turn, entry)
                       }}
@@ -436,6 +460,7 @@ export function TurnTocTrigger({ useChat, t }: TurnTocTriggerProps) {
                       aria-label={t('toc.jump', { title: entry.text })}
                       style={{ '--dsh-toc-mark-width': `${markWidth}px` } as CSSProperties}
                       onClick={() => {
+                        startJump()
                         setActiveIdx(index)
                         revealEntry(document, turn, entry)
                       }}

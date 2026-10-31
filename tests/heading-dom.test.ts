@@ -86,6 +86,34 @@ test('activeHeadingIndex picks the last heading at or above the reading line', (
   assert.equal(activeHeadingIndex(document, 3, [], 250), -1)
 })
 
+test('batch matching assigns duplicate headings to entries in order', () => {
+  const dom = new JSDOM(`
+    <div id="chat">
+      <div data-chat-turn="5">
+        <h2>Plan</h2>
+        <h3>Steps</h3>
+        <h2>Plan</h2>
+      </div>
+    </div>
+  `)
+  const document = dom.window.document
+  const entries = [entry(2, 'Plan', 0), entry(3, 'Steps', 0), entry(2, 'Plan', 1)]
+  // Duplicate entries must resolve to distinct elements in document order.
+  assert.equal(findHeadingElement(document, 5, entries[0]!), document.querySelectorAll('h2')[0])
+  assert.equal(findHeadingElement(document, 5, entries[2]!), document.querySelectorAll('h2')[1])
+  const first = findHeadingElement(document, 5, entries[0]!)!
+  const second = findHeadingElement(document, 5, entries[2]!)!
+  assert.notEqual(first, second)
+  // Reading line between the two Plans activates the first; past both, the second.
+  const steps = findHeadingElement(document, 5, entries[1]!)!
+  first.getBoundingClientRect = () => ({ top: 100 } as DOMRect)
+  steps.getBoundingClientRect = () => ({ top: 200 } as DOMRect)
+  second.getBoundingClientRect = () => ({ top: 300 } as DOMRect)
+  assert.equal(activeHeadingIndex(document, 5, entries, 150), 0)
+  assert.equal(activeHeadingIndex(document, 5, entries, 250), 1)
+  assert.equal(activeHeadingIndex(document, 5, entries, 350), 2)
+})
+
 test('revealTurnStart scrolls to the turn opening row', () => {
   const dom = freshDom()
   const window = dom.window
