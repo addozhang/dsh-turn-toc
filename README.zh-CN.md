@@ -6,6 +6,8 @@
 
 它位于居中正文列的右侧留白处，采用与 DSH 原生 `TurnNavigator` 完全一致的无框极简刻度尺设计语言：平时仅展示按标题层级长短递减的水平短横线，鼠标移入（Hover）时向右展开为可交互的多级章节大纲卡片。
 
+![轮次章节目录演示](https://raw.githubusercontent.com/addozhang/dsh-turn-toc/main/docs/demo.gif)
+
 ## 核心特性
 
 - **原生级无框刻度尺（平时零遮挡）**：静默状态下仅在正文列右缘外侧 `16px` 处展示代表 `H1`–`H6` 层级的水平短横线，既让视线保持在右侧，又绝不遮挡正文或干扰最右侧的 `TurnNavigator`。

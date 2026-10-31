@@ -6,6 +6,8 @@ Turn section outline (TOC) plugin for the **DeepSeek Harness** Web & Desktop GUI
 
 It sits in the right gutter just outside the centered message column—sharing the frameless tick-mark aesthetic of DSH's built-in `TurnNavigator`—and expands on hover into an interactive multi-level heading outline for the turn you are currently reading.
 
+![Turn outline demo](https://raw.githubusercontent.com/addozhang/dsh-turn-toc/main/docs/demo.gif)
+
 ## Features
 
 - **Frameless Tick Marks at Rest**: Renders subtle horizontal tick bars graded by heading level (`H1`–`H6`) right beside the message column, keeping your visual focus on the right without covering any text or colliding with the outer `TurnNavigator`.
