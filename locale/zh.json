@@ -1,6 +1,7 @@
 {
   "meta": {
     "title": "轮次章节目录 (Turn TOC)",
-    "description": "在正文列右侧展示与原生 TurnNavigator 同风格的极简章节刻度，悬停展开多级标题大纲并支持一键跳转与上下轮快速翻阅。"
+    "description": "在正文列右侧展示与原生 TurnNavigator 同风格的极简章节刻度，悬停展开多级标题大纲并支持一键跳转与上下轮快速翻阅。",
+    "detail": "docs/plugin-detail.zh.md"
   }
 }

@@ -80,6 +80,8 @@
     "cordis.patch.yml",
     "icon.svg",
     "locale/*.json",
+    "docs/plugin-detail.zh.md",
+    "docs/plugin-detail.en.md",
     "README.md",
     "README.zh-CN.md",
     "LICENSE"

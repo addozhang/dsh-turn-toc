@@ -1,6 +1,7 @@
 {
   "meta": {
     "title": "Turn Outline (TOC)",
-    "description": "Frameless TurnNavigator-style section tick marks beside the message column that expand on hover into an interactive multi-level heading outline with 1-click jump."
+    "description": "Frameless TurnNavigator-style section tick marks beside the message column that expand on hover into an interactive multi-level heading outline with 1-click jump.",
+    "detail": "docs/plugin-detail.en.md"
   }
 }
